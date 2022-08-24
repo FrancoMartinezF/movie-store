@@ -1,32 +1,69 @@
+import { useState } from "react";
 import React from 'react';
 
 
+const initialFormData = Object.freeze({
+    titulo: "",
+    sinopsis: "",
+    year: "",
+    imagen: ""
+});
+
 function Formulario() {
+
+    const [formData, updateFormData] = React.useState(initialFormData);
+
+    const handleChange = (e) => {
+      updateFormData({
+        ...formData,
+  
+        // Trimming any whitespace
+        [e.target.name]: e.target.value.trim()
+      });
+    };
+  
+    const handleSubmit = (e) => {
+      e.preventDefault()
+      console.log(formData);
+      // ... submit to API or something
+
+      const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ formData })
+        };
+
+        fetch('/agregar', requestOptions)
+        .then(response => response.json())
+        .then(data => console.log(data));
+    };
+
+
     return (
         <>
             <h1>Agregar Pelicula</h1>
-            <form>
+            <form >
                 <div className="mb-3">
-                    <label for="titulo" className="form-label">Titulo</label>
-                    <input type="text" className="form-control"/>
-                </div>
-
-                <div class="mb-3">
-                    <label for="sinopsis" class="form-label">Breve Sinopsis</label>
-                    <textarea class="form-control" rows="3"></textarea>
+                    <label htmlFor="titulo" className="form-label">Titulo</label>
+                    <input type="text" className="form-control" name="titulo" onChange={handleChange} />
                 </div>
 
                 <div className="mb-3">
-                    <label for="año" className="form-label">Año</label>
-                    <input type="number" className="form-control"/>
+                    <label htmlFor="sinopsis" className="form-label">Breve Sinopsis</label>
+                    <textarea className="form-control" rows="3" name="sinopsis" onChange={handleChange}></textarea>
                 </div>
 
-                <div class="input-group mb-3 mt-6">
-                    <label className="input-group-text" for="imagen">Imagen</label>
-                    <input type="file" class="form-control" />
+                <div className="mb-3">
+                    <label htmlFor="año" className="form-label">Año</label>
+                    <input type="number" className="form-control" name="year" onChange={handleChange}/>
                 </div>
 
-                <button type="submit" className="btn btn-primary">Agregar</button>
+                <div className="input-group mb-3 mt-6">
+                    <label className="input-group-text" htmlFor="imagen">Imagen</label>
+                    <input type="file" className="form-control" name="imagen" onChange={handleChange} />
+                </div>
+
+                <button onClick={handleSubmit} className="btn btn-primary">Agregar</button>
             </form>
         </>
      );
