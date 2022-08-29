@@ -27,15 +27,11 @@ app.use(express.json({extended: false}));
 // CORS POLICY
 const dominios = ['http://localhost:3000'];
 const corsOptions = {
-    origin: function(origin, callback){
-        if(dominios.indexOf(origin) !== -1){
-            callback(null, true);
-        } else {
-            callback( new Error('No permitido por CORS'));
-        }
-    }
+    origin: true
 }
 app.use(cors(corsOptions));
+
+app.listen(port, () => {});
 
 
 //DATABASE
@@ -48,32 +44,13 @@ const con = mysql.createConnection({
 });
 
 
-
-
-
-
-app.get('/', (req, res) => {
-    res.send('Hello World!')
-});
-
-app.post("/post", (req, res) => {
-    console.log("Connected to React");
-    res.redirect("/");
-});
-
-app.listen(port, () => {
-/*     console.log(`El servidor esta funcionando en el puerto ${port}`);
-    console.log('Probando...');
-    console.log('otra cosa...'); */
-});
-
-
+//AGREGAR 
 app.post("/agregar", (req, res) => {
     const file = req.files.file;
     const filename = file.name;
-    console.log('body :', req.body);
+    //console.log('body :', req.body);
 
-    let path = __dirname + '/assets/img/';
+    let path = __dirname + './../../src/assets/img/';
 
     file.mv(`${path}${filename}`, (err) => {
         if (err) {
@@ -86,7 +63,7 @@ app.post("/agregar", (req, res) => {
                     'sinopsis': req.body.sinopsis, 
                     'año': req.body.year, 
                     'imagen': req.body.fileName};
-    console.log(values);
+    //console.log(values);
     con.query(sql, values, function (err, result) {
         if (err) throw err;
     });
@@ -94,3 +71,46 @@ app.post("/agregar", (req, res) => {
 
     res.sendStatus(200);
 });
+
+// RETORNAR DATOS
+app.get("/fetch", (req, res) => {
+    const sql = 'SELECT * FROM movie';
+    let resultado;
+    con.query(sql, function (err, result) {
+        if (err) throw err;
+        res.json(result);
+    });
+});
+
+// DELETE
+
+app.delete("/delete/:id", (req, res) => {
+    const { id } = req.params;
+
+    const borrar = () => {
+        console.log(`borrando id ${id}`);
+        let sql = `DELETE FROM movie WHERE id = ${id}`;
+        con.query(sql, function (err, result) {
+            if (err) throw err;
+            console.log(result);
+            if ( result.affectedRows == 1 ){
+                res.json('Eliminado');
+            } else {
+                res.json('No se pudo eliminar');
+            }
+        });
+    }
+
+    let sql = `SELECT * FROM movie WHERE id = ${id}`;
+    con.query(sql, function (err, result) {
+        if (err) throw err;
+        console.log(result.length);
+        if ( result.length > 0 ){
+            console.log("existe");
+            borrar();
+        } else {
+            res.json('Movie not found');
+        }
+    });
+});
+
